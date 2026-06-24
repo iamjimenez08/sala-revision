@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sala de Revisión — Ética e IA en la investigación</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDE7DA;
+    --paper-2:#E3DCCB;
+    --ink:#1C1A17;
+    --ink-soft:#4A453D;
+    --stamp-green:#2F6B4F;
+    --stamp-red:#9E3328;
+    --stamp-amber:#B4791E;
+    --line:#1C1A17;
+    --accent:#2F4858;
+    --grid:rgba(28,26,23,0.07);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:26px 26px;
+    color:var(--ink);
+    font-family:'Inter Tight',sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:clamp(16px,4vw,48px);
+    line-height:1.5;
+  }
+  .sheet{
+    width:100%;
+    max-width:720px;
+    background:var(--paper-2);
+    border:1.5px solid var(--line);
+    box-shadow:6px 6px 0 rgba(28,26,23,0.16);
+    position:relative;
+  }
+
+  /* ── Header ── */
+  header{
+    border-bottom:1.5px solid var(--line);
+    padding:22px clamp(20px,4vw,34px) 18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:16px;
+  }
+  .masthead .kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .masthead h1{
+    font-family:'Newsreader',serif;
+    font-weight:600;
+    font-size:clamp(24px,5.5vw,34px);
+    line-height:1.04;
+    letter-spacing:-.01em;
+    margin-top:4px;
+  }
+  .masthead h1 em{font-style:italic;color:var(--accent)}
+  .ref-no{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    text-align:right;
+    color:var(--ink-soft);
+    white-space:nowrap;
+    line-height:1.7;
+  }
+  .ref-no b{color:var(--ink)}
+
+  /* ── Scoreboard strip ── */
+  .strip{
+    display:flex;
+    border-bottom:1.5px solid var(--line);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .strip .cell{
+    flex:1;
+    padding:10px 14px;
+    border-right:1px solid var(--line);
+  }
+  .strip .cell:last-child{border-right:none}
+  .strip .lbl{
+    font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);
+  }
+  .strip .val{font-size:18px;font-weight:700;margin-top:2px}
+  .progress-track{
+    height:6px;background:var(--paper);border-bottom:1.5px solid var(--line);
+  }
+  .progress-fill{height:100%;background:var(--accent);width:0%;transition:width .4s ease}
+
+  /* ── Body / stage ── */
+  .stage{padding:clamp(22px,4vw,36px)}
+
+  /* Intro */
+  #intro .seal{
+    width:84px;height:84px;margin:0 auto 22px;
+    border:1.5px solid var(--line);border-radius:50%;
+    display:grid;place-items:center;
+    font-family:'Newsreader',serif;font-style:italic;font-size:34px;
+    transform:rotate(-7deg);
+    box-shadow:inset 0 0 0 4px var(--paper-2),inset 0 0 0 5px var(--line);
+  }
+  #intro p.lead{
+    font-family:'Newsreader',serif;font-size:clamp(17px,2.6vw,20px);
+    text-align:center;color:var(--ink-soft);max-width:46ch;margin:0 auto 20px;
+  }
+  .rules{
+    list-style:none;border-top:1px solid var(--line);margin:22px 0;
+  }
+  .rules li{
+    display:flex;gap:14px;align-items:baseline;
+    padding:11px 2px;border-bottom:1px solid rgba(28,26,23,0.18);
+  }
+  .rules .n{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+    color:var(--accent);flex-shrink:0;width:22px;
+  }
+  .rules .t{font-size:14px;color:var(--ink-soft)}
+  .rules .t b{color:var(--ink);font-weight:600}
+
+  /* Case card */
+  .case-meta{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
+    border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:18px;
+  }
+  .case-tag{
+    background:var(--ink);color:var(--paper);padding:2px 8px;letter-spacing:.1em;
+  }
+  .case-title{
+    font-family:'Newsreader',serif;font-weight:600;
+    font-size:clamp(20px,3.4vw,25px);line-height:1.15;margin-bottom:12px;letter-spacing:-.01em;
+  }
+  .case-body{
+    font-size:15.5px;color:var(--ink-soft);margin-bottom:8px;
+  }
+  .case-quote{
+    border-left:2.5px solid var(--accent);
+    background:rgba(47,72,88,0.05);
+    font-family:'Newsreader',serif;font-style:italic;font-size:15px;
+    padding:11px 16px;margin:16px 0 22px;color:var(--ink);
+  }
+  .prompt-q{
+    font-size:13px;font-weight:600;letter-spacing:.02em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:14px;
+    font-family:'Inter Tight',sans-serif;
+  }
+
+  /* Verdict buttons */
+  .verdicts{display:grid;gap:10px}
+  .verdict{
+    text-align:left;background:var(--paper);border:1.5px solid var(--line);
+    padding:13px 16px;cursor:pointer;font-family:'Inter Tight',sans-serif;
+    font-size:15px;font-weight:600;color:var(--ink);
+    display:flex;align-items:center;gap:13px;
+    transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+  }
+  .verdict .dot{
+    width:13px;height:13px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;
+  }
+  .verdict[data-v="etico"] .dot{background:var(--stamp-green)}
+  .verdict[data-v="dudoso"] .dot{background:var(--stamp-amber)}
+  .verdict[data-v="antietico"] .dot{background:var(--stamp-red)}
+  .verdict:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:4px 4px 0 rgba(28,26,23,0.18)}
+  .verdict:disabled{cursor:default}
+  .verdict.correct{background:var(--stamp-green);color:var(--paper);border-color:var(--line)}
+  .verdict.correct .dot{background:var(--paper);border-color:var(--paper)}
+  .verdict.wrong{background:var(--stamp-red);color:var(--paper);opacity:.92}
+  .verdict.wrong .dot{background:var(--paper);border-color:var(--paper)}
+  .verdict.dim{opacity:.4}
+
+  /* Verdict stamp + explanation */
+  .resolution{
+    margin-top:22px;border-top:1.5px dashed var(--line);padding-top:20px;
+    display:none;
+  }
+  .resolution.show{display:block;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .stamp{
+    display:inline-block;font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    border:2px solid;padding:5px 12px;transform:rotate(-3deg);margin-bottom:14px;
+  }
+  .stamp.etico{color:var(--stamp-green);border-color:var(--stamp-green)}
+  .stamp.dudoso{color:var(--stamp-amber);border-color:var(--stamp-amber)}
+  .stamp.antietico{color:var(--stamp-red);border-color:var(--stamp-red)}
+  .explain-label{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;
+  }
+  .explain{font-size:15px;color:var(--ink);margin-bottom:8px}
+  .principle{
+    font-size:12.5px;color:var(--ink-soft);font-style:italic;
+    font-family:'Newsreader',serif;
+  }
+
+  /* Buttons */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    background:var(--ink);color:var(--paper);border:1.5px solid var(--line);
+    font-family:'Inter Tight',sans-serif;font-weight:600;font-size:15px;
+    padding:13px 26px;cursor:pointer;width:100%;margin-top:20px;
+    transition:transform .12s ease,box-shadow .12s ease;
+  }
+  .btn:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--accent)}
+  .btn.ghost{background:transparent;color:var(--ink)}
+  .btn.ghost:hover{box-shadow:4px 4px 0 rgba(28,26,23,0.18)}
+  .btn-arrow{font-family:'JetBrains Mono',monospace}
+
+  /* Results */
+  #results{text-align:center}
+  .verdict-final{
+    font-family:'Newsreader',serif;font-style:italic;
+    font-size:clamp(26px,5vw,38px);line-height:1.1;margin:8px 0 6px;
+  }
+  .score-big{
+    font-family:'JetBrains Mono',monospace;font-size:clamp(44px,10vw,68px);
+    font-weight:700;letter-spacing:-.02em;
+  }
+  .score-big span{color:var(--ink-soft);font-size:.4em}
+  .rank{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;border:1.5px solid var(--line);display:inline-block;
+    padding:7px 16px;margin:18px 0 10px;
+  }
+  .breakdown{
+    text-align:left;border-top:1px solid var(--line);margin-top:24px;
+  }
+  .breakdown .row{
+    display:flex;gap:12px;padding:10px 2px;border-bottom:1px solid rgba(28,26,23,0.16);
+    font-size:13.5px;align-items:baseline;
+  }
+  .breakdown .mark{font-family:'JetBrains Mono',monospace;font-weight:700;flex-shrink:0}
+  .breakdown .mark.ok{color:var(--stamp-green)}
+  .breakdown .mark.no{color:var(--stamp-red)}
+  .breakdown .rt{color:var(--ink-soft)}
+
+  footer{
+    margin-top:28px;font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.1em;color:var(--ink-soft);text-align:center;
+  }
+  @media (max-width:480px){
+    .strip .val{font-size:15px}
+    .verdict{font-size:14px;padding:12px 13px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<main class="sheet">
+  <header>
+    <div class="masthead">
+      <div class="kicker">Comité de Integridad Académica · IA</div>
+      <h1>Sala de <em>Revisión</em></h1>
+    </div>
+    <div class="ref-no">
+      EXP. <b id="refno">00/08</b><br>
+      ÉTICA·IA<br>
+      v1.0
+    </div>
+  </header>
+
+  <div class="strip">
+    <div class="cell"><div class="lbl">Dictámenes</div><div class="val" id="answered">0<span style="color:var(--ink-soft);font-size:12px"> / 8</span></div></div>
+    <div class="cell"><div class="lbl">Aciertos</div><div class="val" id="score">0</div></div>
+    <div class="cell"><div class="lbl">Racha</div><div class="val" id="streak">0</div></div>
+  </div>
+  <div class="progress-track"><div class="progress-fill" id="bar"></div></div>
+
+  <div class="stage">
+
+    <!-- INTRO -->
+    <section id="intro">
+      <div class="seal">R</div>
+      <p class="lead">Ocho manuscritos llegan a tu escritorio. En cada uno, un investigador usó inteligencia artificial. Tu trabajo: dictaminar si la práctica fue <b>ética</b>, <b>dudosa</b> o <b>antiética</b>.</p>
+      <ul class="rules">
+        <li><span class="n">01</span><span class="t">Lee el caso y emite tu <b>dictamen</b>. No hay vuelta atrás.</span></li>
+        <li><span class="n">02</span><span class="t">Acierto pleno: <b>+10 pts</b>. Cada caso revela el principio en juego.</span></li>
+        <li><span class="n">03</span><span class="t">Mantén la <b>racha</b>: tres aciertos seguidos suman bonus de criterio.</span></li>
+      </ul>
+      <button class="btn" id="startBtn">Abrir el primer expediente <span class="btn-arrow">→</span></button>
+    </section>
+
+    <!-- CASE -->
+    <section id="case" style="display:none">
+      <div class="case-meta">
+        <span class="case-tag" id="caseTag">SESGO</span>
+        <span id="caseSource">FUENTE: CASO ACADÉMICO</span>
+      </div>
+      <h2 class="case-title" id="caseTitle"></h2>
+      <p class="case-body" id="caseBody"></p>
+      <div class="case-quote" id="caseQuote"></div>
+      <p class="prompt-q">¿Cuál es tu dictamen?</p>
+      <div class="verdicts" id="verdicts"></div>
+
+      <div class="resolution" id="resolution">
+        <div class="stamp" id="stamp"></div>
+        <div class="explain-label">Acta del comité</div>
+        <p class="explain" id="explain"></p>
+        <p class="principle" id="principle"></p>
+        <button class="btn" id="nextBtn">Siguiente expediente <span class="btn-arrow">→</span></button>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="results" style="display:none">
+      <div class="explain-label">Dictamen final del revisor</div>
+      <div class="score-big"><span id="finalScore">0</span><span>/80</span></div>
+      <div class="rank" id="rank"></div>
+      <p class="verdict-final" id="rankPhrase"></p>
+      <div class="breakdown" id="breakdown"></div>
+      <button class="btn ghost" id="restartBtn">Revisar otra tanda <span class="btn-arrow">↺</span></button>
+    </section>
+
+  </div>
+</main>
+<footer>Módulo 7 · Felix Enrique Parra Jiménez</footer>
+
+<script>
+const CASES = [
+  {
+    tag:"AUTORÍA", source:"FUENTE: AUTORÍA Y CRÉDITO",
+    title:"El coautor invisible",
+    body:"Una estudiante redacta su tesis usando un modelo de lenguaje para generar párrafos completos de la discusión. En los agradecimientos no menciona la herramienta y firma como única autora.",
+    quote:"“El texto es mío porque yo decidí qué preguntarle.”",
+    answer:"antietico",
+    explain:"Antiético. Presentar texto generado por IA como producción propia sin declararlo vulnera la transparencia. La mayoría de revistas y universidades exigen reportar el uso de IA generativa en la metodología o en una nota de autoría.",
+    principle:"Principio: transparencia y honestidad en la autoría."
+  },
+  {
+    tag:"ALUCINACIÓN", source:"FUENTE: VERIFICACIÓN DE FUENTES",
+    title:"La cita que nunca existió",
+    body:"Un investigador pide a la IA referencias para sustentar su marco teórico. El modelo entrega cinco citas con autor, año y revista. Él las copia directo a la bibliografía sin abrir ninguna.",
+    quote:"“Se veían bien formateadas, así que confié.”",
+    answer:"antietico",
+    explain:"Antiético. Los modelos pueden 'alucinar' referencias inexistentes pero verosímiles. Citar sin verificar la existencia y el contenido real de la fuente constituye fabricación de evidencia.",
+    principle:"Principio: verificabilidad y rigor en la evidencia."
+  },
+  {
+    tag:"SESGO", source:"FUENTE: SESGO EN DATOS",
+    title:"El dataset cómodo",
+    body:"Un equipo entrena un clasificador con datos de una sola región y luego presenta resultados como si aplicaran a toda la población nacional, sin advertir las limitaciones de la muestra.",
+    quote:"“Era el único dataset disponible y teníamos plazo.”",
+    answer:"dudoso",
+    explain:"Dudoso. Usar datos limitados no es en sí una falta, pero omitir las limitaciones y sobre-generalizar los hallazgos induce a error. Sería ético si declararan explícitamente el sesgo de muestra y el alcance real.",
+    principle:"Principio: representatividad y declaración de limitaciones."
+  },
+  {
+    tag:"TRANSPARENCIA", source:"FUENTE: USO DECLARADO",
+    title:"La nota al pie honesta",
+    body:"Un autor usa IA para corregir gramática, traducir secciones y resumir literatura. En la sección de métodos describe con detalle qué herramienta usó, para qué, y aclara que la interpretación de resultados es suya.",
+    quote:"“Asistencia de IA: edición de estilo y traducción. Análisis: del autor.”",
+    answer:"etico",
+    explain:"Ético. El uso instrumental de la IA, declarado con claridad y sin delegar el juicio analítico, es una práctica aceptada y cada vez más recomendada. La transparencia convierte la herramienta en apoyo legítimo.",
+    principle:"Principio: uso responsable y declarado de herramientas."
+  },
+  {
+    tag:"CONSENTIMIENTO", source:"FUENTE: DATOS PERSONALES",
+    title:"Entrevistas a la nube",
+    body:"Para agilizar el análisis, una investigadora sube transcripciones completas de entrevistas con datos sensibles de los participantes a un servicio de IA público, sin avisarles ni anonimizar el contenido.",
+    quote:"“Solo lo usé para que me ayudara a codificar los temas.”",
+    answer:"antietico",
+    explain:"Antiético. Exponer datos personales identificables de participantes a un servicio externo sin consentimiento ni anonimización vulnera la protección de datos y el acuerdo bajo el cual se recogió la información.",
+    principle:"Principio: consentimiento informado y protección de datos."
+  },
+  {
+    tag:"REPRODUCIBILIDAD", source:"FUENTE: MÉTODO REPRODUCIBLE",
+    title:"La caja negra del prompt",
+    body:"Un estudio reporta haber clasificado 2.000 documentos con IA, pero no documenta qué modelo, versión ni instrucciones usó. Otro equipo intenta replicarlo y obtiene resultados distintos.",
+    quote:"“El procedimiento fue: le pedí a la IA que clasificara.”",
+    answer:"dudoso",
+    explain:"Dudoso. No es fraude, pero la falta de documentación (modelo, versión, prompts, parámetros) hace el estudio irreproducible. Sería correcto registrar y anexar todo el procedimiento para que otros puedan replicarlo.",
+    principle:"Principio: reproducibilidad y trazabilidad metodológica."
+  },
+  {
+    tag:"PLAGIO", source:"FUENTE: ORIGINALIDAD",
+    title:"Parafraseo a máquina",
+    body:"Un autor toma un artículo ajeno, le pide a la IA que lo 'reescriba con otras palabras' y presenta el resultado como aporte original, sin citar la fuente de la que partió.",
+    quote:"“No es copia, está redactado distinto.”",
+    answer:"antietico",
+    explain:"Antiético. Cambiar las palabras no cambia la autoría de las ideas. Reescribir contenido ajeno sin atribución es plagio, lo haga una persona o una máquina. La IA no lava el origen de la idea.",
+    principle:"Principio: originalidad y atribución de las ideas."
+  },
+  {
+    tag:"JUICIO", source:"FUENTE: SUPERVISIÓN HUMANA",
+    title:"El revisor delegado",
+    body:"Un comité usa IA para hacer un primer filtro de cientos de propuestas, pero un humano revisa cada decisión límite, documenta los criterios y conserva la responsabilidad final de cada dictamen.",
+    quote:"“La IA prioriza; nosotros decidimos y respondemos.”",
+    answer:"etico",
+    explain:"Ético. Usar IA para tareas de apoyo manteniendo supervisión humana significativa, criterios explícitos y responsabilidad final en las personas es un uso defendible y alineado con las buenas prácticas actuales.",
+    principle:"Principio: supervisión humana y rendición de cuentas."
+  }
+];
+
+const LABELS={etico:"Ético",dudoso:"Dudoso",antietico:"Antiético"};
+const ORDER=["etico","dudoso","antietico"];
+
+let idx=0, score=0, streak=0, answeredFlag=false;
+const log=[];
+
+const $=id=>document.getElementById(id);
+
+$('startBtn').onclick=()=>{$('intro').style.display='none';$('case').style.display='block';render();};
+$('nextBtn').onclick=()=>{idx++; idx<CASES.length? (render()) : showResults();};
+$('restartBtn').onclick=()=>{idx=0;score=0;streak=0;log.length=0;updateStrip();$('results').style.display='none';$('case').style.display='block';render();};
+
+function updateStrip(){
+  $('answered').innerHTML=idx+'<span style="color:var(--ink-soft);font-size:12px"> / 8</span>';
+  $('score').textContent=score;
+  $('streak').textContent=streak;
+  $('bar').style.width=(idx/CASES.length*100)+'%';
+  $('refno').textContent=String(Math.min(idx+1,8)).padStart(2,'0')+'/08';
+}
+
+function render(){
+  answeredFlag=false;
+  const c=CASES[idx];
+  $('caseTag').textContent=c.tag;
+  $('caseSource').textContent=c.source;
+  $('caseTitle').textContent=c.title;
+  $('caseBody').textContent=c.body;
+  $('caseQuote').textContent=c.quote;
+  $('resolution').classList.remove('show');
+  updateStrip();
+
+  const box=$('verdicts'); box.innerHTML='';
+  ORDER.forEach(v=>{
+    const b=document.createElement('button');
+    b.className='verdict'; b.dataset.v=v;
+    b.innerHTML=`<span class="dot"></span>${LABELS[v]}`;
+    b.onclick=()=>choose(v,b);
+    box.appendChild(b);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function choose(v,btn){
+  if(answeredFlag) return;
+  answeredFlag=true;
+  const c=CASES[idx];
+  const correct=v===c.answer;
+  if(correct){score+=10; streak++; if(streak>0&&streak%3===0)score+=5;}
+  else streak=0;
+  log.push({title:c.title,ok:correct,answer:LABELS[c.answer]});
+
+  document.querySelectorAll('.verdict').forEach(b=>{
+    b.disabled=true;
+    if(b.dataset.v===c.answer) b.classList.add('correct');
+    else if(b===btn) b.classList.add('wrong');
+    else b.classList.add('dim');
+  });
+
+  const st=$('stamp');
+  st.className='stamp '+c.answer;
+  st.textContent=LABELS[c.answer];
+  $('explain').textContent=c.explain;
+  $('principle').textContent=c.principle;
+  $('resolution').classList.add('show');
+  $('score').textContent=score;
+  $('streak').textContent=streak;
+  $('nextBtn').innerHTML = idx===CASES.length-1
+    ? 'Ver dictamen final <span class="btn-arrow">→</span>'
+    : 'Siguiente expediente <span class="btn-arrow">→</span>';
+}
+
+function showResults(){
+  $('case').style.display='none';
+  $('results').style.display='block';
+  $('bar').style.width='100%';
+  $('answered').innerHTML='8<span style="color:var(--ink-soft);font-size:12px"> / 8</span>';
+  $('finalScore').textContent=score;
+
+  let rank,phrase;
+  if(score>=75){rank="REVISOR PRINCIPAL";phrase="Criterio ético impecable.";}
+  else if(score>=55){rank="REVISOR ASOCIADO";phrase="Buen ojo, con matices por pulir.";}
+  else if(score>=35){rank="REVISOR EN FORMACIÓN";phrase="Vas entendiendo dónde está la línea.";}
+  else {rank="LECTURA PENDIENTE";phrase="Hora de revisar los principios.";}
+  $('rank').textContent=rank;
+  $('rankPhrase').textContent=phrase;
+
+  const bd=$('breakdown'); bd.innerHTML='';
+  log.forEach((r,i)=>{
+    const row=document.createElement('div');
+    row.className='row';
+    row.innerHTML=`<span class="mark ${r.ok?'ok':'no'}">${r.ok?'✓':'✗'}</span>
+      <span class="rt"><b style="color:var(--ink)">${String(i+1).padStart(2,'0')}.</b> ${r.title} — dictamen correcto: <b style="color:var(--ink)">${r.answer}</b></span>`;
+    bd.appendChild(row);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
